@@ -2,10 +2,12 @@ var jsdom = require('jsdom');
 
 //example ASIN
 var id = "B00CU0NSCU",
-    page = 1;
+    page = 1,
+	endPage = 20;
 
 var scrape = function() {
 	var temp = "";
+	var num = 1;
     jsdom.env(
         "http://www.amazon.com/product-reviews/" + id + 
         "/? ie=UTF8&showViewpoints=0&pageNumber=" + page +
@@ -30,8 +32,9 @@ var scrape = function() {
 				
 				//   console.log('-----------------------');
 				//  console.log('Title: ' + title  + '\nDate: ' + date + '\nHelpfulness:' + $.trim(helpful) + '\nReviewer:' + reviewerName + '\nRating: ' + starRating + '\nReview:' + review + '\n\n');
-				  temp += parseReview(title, date, helpful, starRating, review);
+				  temp += parseReview(title, date, helpful, starRating, review, num);
 				  }
+				  num++;
             });}
 			console.log(temp);
             window.close();
@@ -39,7 +42,7 @@ var scrape = function() {
     )        
 };
 
-var parseReview = function (title, date, helpful, rating, review){
+var parseReview = function (title, date, helpful, rating, review, num){
 var output = "{ ";
 //output += '"title": "' + title +'", ';
 output += '"date": "' + date +'", ';
@@ -51,10 +54,13 @@ var helpfulRatio = helpful/impact;
 output += '"impact": ' + impact + ', "helpful": ' + helpfulRatio + ', ';
 output += '"rating": ' + rating.substring(0,1);
 //output += '"review": "' + review.replace('"', '');
-output +=  ' } , ';
+if(num == 10 && page == endPage)
+	output +=  ' }';
+else
+	output +=  ' } , ';
 return output;
 }
-
+//Text for parsing reviews already existing in a separate file
 var parse = function(str) {
 if(str.indexOf("Title:") != -1)
 	return '"title": "' + str.trim(str.substring(6))+'", ';
@@ -82,7 +88,9 @@ else
 
 console.log('{ "Reviews": ['); 
 
-while(page < 20){ 
+while(page <= endPage){ 
 scrape();
 page++;
 }
+
+console.log(']}');
