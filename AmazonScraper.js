@@ -1,9 +1,10 @@
 var jsdom = require('jsdom');
 
 //example ASIN
-var id = "B00CU0NSCU",
+var id = "B009AGXH64",
     page = 1,
-	endPage = 20;
+	endPage = 55,
+	sort = "bySubmissionDateDescending";
 
 var scrape = function(page, endPage) {
 	var temp = "";
@@ -11,7 +12,7 @@ var scrape = function(page, endPage) {
     jsdom.env(
         "http://www.amazon.com/product-reviews/" + id + 
         "/? ie=UTF8&showViewpoints=0&pageNumber=" + page +
-        "&sortBy=bySubmissionRankDescending",
+        "&sortBy="+sort,
         ["http://code.jquery.com/jquery.js"],
         function (errors, window) {
             var $ = window.jQuery;  
@@ -20,19 +21,20 @@ var scrape = function(page, endPage) {
 				productReviews.find('td').children('div:lt(10)').each(function() {
 					var starRating = $(this).find('span:first').text();
 					if(starRating != ""){
-					var helpful = $(this).find('span:first').parent().prev().text();
+					//var helpful = $(this).find('span:first').parent().prev().text();
 					var date = $(this).find('span:first').next().find('nobr').text();
-					var title = $(this).find('span:first').next().find('b').text();
-					var reviewerName = $(this).children().next().find('a:first').find('span').text();
+					//var title = $(this).find('span:first').next().find('b').text();
+					//var reviewerName = $(this).children().next().find('a:first').find('span').text();
 
-					var reviewBlock = $(this).find("[class='reviewText']").text();
-					var review = $.trim(reviewBlock);
+					//var reviewBlock = $(this).find("[class='reviewText']").text();
+					//var review = $.trim(reviewBlock);
 					$(this).children().remove();
 					
 				
 				//   console.log('-----------------------');
 				//  console.log('Title: ' + title  + '\nDate: ' + date + '\nHelpfulness:' + $.trim(helpful) + '\nReviewer:' + reviewerName + '\nRating: ' + starRating + '\nReview:' + review + '\n\n');
-				  temp += parseReview(title, date, helpful, starRating, review, num, page, endPage);
+				//  temp += parseReview(title, date, helpful, starRating, review, num, page, endPage);
+				 temp += parseAverageReview(date, starRating, num, page, endPage);
 				  }
 				  num++;
             });}
@@ -41,6 +43,27 @@ var scrape = function(page, endPage) {
         }
     )        
 };
+
+var parseAverageReview = function(date, star, num, page, endPage){
+//begin bracket for review
+var output = "{ ";
+
+//splits date which is in format 'month day, year' around spaces for easy access to month and year
+var dateSplit = date.split(" ");
+
+//outputs the month and year variables in accordance with json
+output += '"month": "' + dateSplit[0] +'", ';
+output += '"year": ' + dateSplit[2] + ', ';
+
+//outputs rating
+output += '"rating": ' + star.substring(0,1);
+if(num == 10 && page == endPage)
+	output +=  ' }]}';
+else
+	output +=  ' } , ';
+return output;
+}
+
 
 var parseReview = function (title, date, helpful, rating, review, num, page, endPage){
 var output = "{ ";
@@ -86,7 +109,7 @@ else
 	return "";
 }
 //insert initial text for the block
-console.log('{ "Reviews": ['); 
+console.log('{ "reviews": ['); 
 
 //loop until all pages have been parsed
 while(page <= endPage){ 

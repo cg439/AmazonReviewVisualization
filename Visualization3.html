@@ -1,0 +1,203 @@
+<html>
+<head>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> 
+    <title>Amazon Reviews Visualizations</title>
+    <style>
+        .axis path { fill: none; stroke: black;}
+        .axis line { stroke: black; }
+        circle {
+            fill: #000066;
+        }
+        input[type=range] {
+
+            width: 500px;
+        }
+        .min, .max {
+            position: absolute;
+        }
+        .max {
+            top: 10px;
+            left: 500px;
+        }
+        .min {
+            top:10px; 
+        }
+        #sliderDiv {
+            height: 70px;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+<div id = "canvas"></div>
+
+<script>
+    //Scale values and bounds for our scales are simply placeholders at the moment, will expand upon them soon, when we know what data
+    //we're working with.
+    
+    //Axis scales
+    var xAxScale = d3.scale.linear().domain([2013.10, 2014.3]).range([100, 900]);
+    var yAxScale = d3.scale.linear().domain([1, 5]).range([850, 50]); 
+   //Canvas svg element creation 
+    var svg = d3.select("#canvas")
+        .append("svg")
+        .attr("height", 1000)
+        .attr("width", 1000);
+   
+    //Generate axes. 
+    var xAxis = d3.svg.axis().scale(xAxScale).tickFormat(d3.format("d"));
+
+    var yAxis = d3.svg.axis().scale(yAxScale).orient("left").ticks(5);
+    
+	var json;
+	
+	
+	var avgReviews = {};
+	
+	var file = "wii.json";
+	
+	
+	//concatenates month and year together to form a string of the first day of that month for that year
+	var parseDate = function (month, year){
+		var temp = month;
+		temp += " 1, ";
+		temp += year;
+		return temp;
+	}
+	
+	var keys = new Array();
+	var keyCount = 0;
+	
+	d3.json(file, function (data){
+	var sum = 0.0;
+	var num = 0;
+	var date = "";
+	var temp;
+	json = data;
+	for(var i = 0; i < json.reviews.length; i++){
+		var review = json.reviews[i];
+		date = parseDate(review.month, review.year);
+		if(!avgReviews[date]){
+			avgReviews[date] = {"date" : date, "avg": review.rating, "num": 1};
+			keys[keyCount++] = date;
+			}
+		else{
+			temp = avgReviews[date];
+			temp.avg += review.rating;
+			temp.num++;
+			}
+		}
+		console.log("About to reach defcon 4");
+		for(var i = 0; i < keyCount; i++){
+			var key = keys[i];
+			var temp = avgReviews[key];
+			var avg = (temp.avg / temp.num);
+			console.log(temp.date);
+			avgReviews[key].avg = avg;
+		}
+	});
+	
+	
+	
+	
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0, 900)")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "axis")     
+        .attr("transform", "translate(100, 0)")
+        .call(yAxis); 
+
+    //Add filter slider for filtering out circles by helpfulness percentage
+    var sliderDiv = d3.select("#canvas")
+        .append("div")
+        .attr("id", "sliderDiv");
+
+    sliderDiv
+        .append("label")
+        .attr("for", "slider")
+        .html('<span class = "min">0%</span><span class = "max">100%</span>');
+
+    var slider = sliderDiv
+        .append("input")
+        .attr("type", "range")
+        .attr("min", "0")
+        .attr("max", "100")
+        .attr("value", "0")
+        .attr("id", "slider");
+        
+    //Generates the interactivity for the slider
+    sliderHelpful(slider);
+
+    //Scales to be used for circle locations and information, scaleName corresponds to what scale in the visualization
+    //it will be used for.
+    var dateScale = d3.scale.linear().domain([Date.parse(2013.10), Date.parse(2014.3)]).range([100, 900]);
+    var starScale = d3.scale.linear().domain([1, 5]).range([850, 50]); 
+   // var helpfulScale = d3.scale.linear().domain([0, 1]).range([25, 100]);
+
+    //Sample set of data before loading real data. CHANGE THIS LATER!!!!!!!!
+  //  appendNewCircle(2005, 4, 0.5, "helloThere"); 
+   // appendNewCircle(2006, 3, 0.3, "Great!");
+    //appendNewCircle(2012, 1, 0.9, "Bad!");
+
+    //Function called everytime we append a new circle by parsing our data.
+    function appendNewCircle(date, star, helpful, review, impact) {
+        //The helpfulness percentage value to be bound as data to a circle.
+        var help = new Array();
+        help[0] = helpful;
+		var color = '#'+Math.floor(Math.random()*16777215).toString(16);;
+        //Appends new circle to graph.
+        var circle = svg.append("circle")
+            .attr("cx", dateScale(date))
+            .attr("cy", starScale(star))
+            .attr("r", 3+Math.log(impact)*Math.log(impact))
+			.style("fill-opacity", helpful)
+			.style("fill", color)
+            .data(help);
+
+        //Deals with how clicking on a circle will display its written review.
+        circle.on("click", function() {
+            var width = screen.availWidth/2;
+            var height = screen.availHeight/2;
+            var written = ("<h1 class = reviewHeader>Review</h1><p>" + review + "</p>");
+            var style = ("<style> html {background-color: #0099CC} .reviewHeader {text-align: center} </style>");
+            var newWindow = window.open("","", "width=" + width,  "height=" + height); newWindow.document.write("<html><head>" + style + "</head><body>" + written + "</body>");
+
+
+            });
+    } 
+
+    //Generates the interactivity for the slider. All circles with less than the slider value of helpfulness
+    //percentage will be hidden.
+    function sliderHelpful(slider) {
+        slider.on("change", function() {
+            //Value of the slider
+            var slideVal = this.value / 100;
+            d3.selectAll("circle")
+                .each(function(d, i) {
+
+                if(d < slideVal) {
+                    d3.select(this)
+                        .style("visibility", "hidden"); 
+                }
+                else {
+                    d3.select(this)
+                        .style("visibility", "visible");
+                }
+                });
+        }); 
+    
+
+
+
+    }
+</script>
+
+    
+
+</body>
+
+</html>
