@@ -5,7 +5,7 @@ var id = "B00CU0NSCU",
     page = 1,
 	endPage = 20;
 
-var scrape = function() {
+var scrape = function(page, endPage) {
 	var temp = "";
 	var num = 1;
     jsdom.env(
@@ -32,7 +32,7 @@ var scrape = function() {
 				
 				//   console.log('-----------------------');
 				//  console.log('Title: ' + title  + '\nDate: ' + date + '\nHelpfulness:' + $.trim(helpful) + '\nReviewer:' + reviewerName + '\nRating: ' + starRating + '\nReview:' + review + '\n\n');
-				  temp += parseReview(title, date, helpful, starRating, review, num);
+				  temp += parseReview(title, date, helpful, starRating, review, num, page, endPage);
 				  }
 				  num++;
             });}
@@ -42,7 +42,7 @@ var scrape = function() {
     )        
 };
 
-var parseReview = function (title, date, helpful, rating, review, num){
+var parseReview = function (title, date, helpful, rating, review, num, page, endPage){
 var output = "{ ";
 //output += '"title": "' + title +'", ';
 output += '"date": "' + date +'", ';
@@ -55,7 +55,7 @@ output += '"impact": ' + impact + ', "helpful": ' + helpfulRatio + ', ';
 output += '"rating": ' + rating.substring(0,1);
 //output += '"review": "' + review.replace('"', '');
 if(num == 10 && page == endPage)
-	output +=  ' }';
+	output +=  ' }]}';
 else
 	output +=  ' } , ';
 return output;
@@ -85,12 +85,11 @@ else if(str.indexOf("-----------------------") != -1)
 else
 	return "";
 }
-
+//insert initial text for the block
 console.log('{ "Reviews": ['); 
 
+//loop until all pages have been parsed
 while(page <= endPage){ 
-scrape();
-page++;
+	scrape(page, endPage);
+	page++;
 }
-
-console.log(']}');
