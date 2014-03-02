@@ -1,9 +1,9 @@
 var jsdom = require('jsdom');
 
 //example ASIN
-var id = "B009AGXH64",
+var id = "",
     page = 1,
-	endPage = 55,
+	endPage = 1,
 	sort = "bySubmissionDateDescending";
 
 var scrape = function(page, endPage) {
