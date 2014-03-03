@@ -90,8 +90,9 @@
 		.attr("height", 300)
 		.attr("width", 450);
 	
-	
+	//generates legend for circles
 	function generateCircleLegend(svgEl){
+	//adds rect to make nice looking border
 	svgEl.append("rect")
 		.attr("x", 0)
 		.attr("width", 450)
@@ -99,7 +100,8 @@
 		.attr("height", 300)
 		.style("stroke", "black")
 		.attr("fill", "white");
-		
+	
+	//appends circles to show what characteristic of circle represents
 	svgEl.append("circle")
 		.attr("cx", 100)
 		.attr("cy", 20)
@@ -118,6 +120,7 @@
 		.attr("r", 60)
 		.style("fill", "rgb(255,0,0)");
 	
+	//appends text explaining what size of the circles mean
 	svgEl.append("text")
 		.attr("x", 170)
 		.attr("y", 25)
@@ -136,6 +139,7 @@
 		.style("font-size", "14pt")
 		.text("Approximately 4,000 reviews");
 		
+	//appends text explaining what colors mean
 	svgEl.append("text")
 		.attr("x", 10)
 		.attr("y", 50)
@@ -156,6 +160,8 @@
 	}
    
    function generateLineLegend(svgEl){
+   
+   //appends rectangle for nice looking edges
    svgEl.append("rect")
 		.attr("x", 0)
 		.attr("width", 450)
@@ -207,7 +213,7 @@
 		.text("Xbox");
    
    }
-   
+   //generates legends for two circle legends and one line legend
    function generateLegend(){
 		generateCircleLegend(svg6);
 		generateCircleLegend(svg7);
@@ -411,11 +417,11 @@
             .attr("font-size", "12px")
             .attr("font-weight", "bold")
             .attr("transform", "translate(100, 200)")
-            .attr("transform", "rotate(-90, " + xAxScale(2012.68) + "," + yAxScale(3) + ")") 
+            .attr("transform", "rotate(-90, " + xAxScale(2012.6) + "," + yAxScale(3) + ")") 
             .text("Average Star Rating");
     }
 	
-	
+	//loads json file and uses data in callback function to create visual elements
 	d3.json(file, function (data){
 		var wii = data.wii;
 		var ps4 = data.ps4;
